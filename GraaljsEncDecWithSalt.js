@@ -26,7 +26,13 @@ function generateSalt() {
 function generateKey(password, salt) {
     try {
         const factory = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM);
-        const spec = new PBEKeySpec(Java.to(password, 'char[]'), salt, ITERATION_COUNT, KEY_LENGTH);
+        // Correctly create a Java char[] from the JavaScript string
+        const passwordCharArray = new (Java.type('char[]'))(password.length);
+        for (let i = 0; i < password.length; i++) {
+            passwordCharArray[i] = password.charCodeAt(i);
+        }
+
+        const spec = new PBEKeySpec(passwordCharArray, salt, ITERATION_COUNT, KEY_LENGTH);
         const tmp = factory.generateSecret(spec);
         const secretKey = new SecretKeySpec(tmp.getEncoded(), ALGORITHM);
         return secretKey.getEncoded(); // Return the key as a byte array
